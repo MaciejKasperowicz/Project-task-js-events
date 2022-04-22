@@ -3,7 +3,7 @@ const init = function() {
     imagesList.forEach( img => {
         img.dataset.sliderGroupName = Math.random() > 0.5 ? 'nice' : 'good';
     }); // za każdym przeładowaniem strony przydzielaj inną nazwę grupy dla zdjęcia
-
+    
     runJSSlider();
 }
 
@@ -14,10 +14,11 @@ const runJSSlider = function() {
     const sliderRootSelector = '.js-slider'; 
 
     const imagesList = document.querySelectorAll(imagesSelector);
+    
     const sliderRootElement = document.querySelector(sliderRootSelector);
-
     initEvents(imagesList, sliderRootElement);
     initCustomEvents(imagesList, sliderRootElement, imagesSelector);
+    
 }
 
 const initEvents = function(imagesList, sliderRootElement) {
@@ -27,7 +28,8 @@ const initEvents = function(imagesList, sliderRootElement) {
         });
         
     });
-
+    
+    
     // todo: 
     // utwórz nasłuchiwanie eventu o nazwie [click], który ma uruchomić event [js-slider-img-next]
     // na elemencie [.js-slider__nav--next]
@@ -60,7 +62,6 @@ const initEvents = function(imagesList, sliderRootElement) {
 
 const fireCustomEvent = function(element, name) {
     console.log(element.className, '=>', name);
-
     const event = new CustomEvent(name, {
         bubbles: true,
     });
@@ -82,10 +83,10 @@ const initCustomEvents = function(imagesList, sliderRootElement, imagesSelector)
 
 const onImageClick = function(event, sliderRootElement, imagesSelector) {
     // todo:  
-
+    // console.log("Przed: ",document.querySelector(".gallery"));
     // 1. dodać klasę [.js-slider--active], aby pokazać całą sekcję
     sliderRootElement.classList.add("js-slider--active");
-
+    
     // 2. wyszukać ściężkę (atrybut [src]) do klikniętego elementu i wstawić do [.js-slider__image]
     const sliderImage = sliderRootElement.querySelector(".js-slider__image");
     const currentFigure = event.target;
@@ -102,19 +103,17 @@ const onImageClick = function(event, sliderRootElement, imagesSelector) {
     // 6. zaznaczyć przy pomocy klasy [.js-slider__thumbs-image--current], który element jest aktualnie wyświetlany
     const sliderThumbs = document.querySelector(".js-slider__thumbs");
     figBelongsToGroup.forEach(fig =>{
-        fig.className = "js-slider__thumbs-item";
-        fig.firstElementChild.className = "js-slider__thumbs-image";
+        const clonedFigure = fig.cloneNode(true);
+        clonedFigure.className = "js-slider__thumbs-item";
+        clonedFigure.firstElementChild.className = "js-slider__thumbs-image";
         
-        if(fig.firstElementChild.getAttribute("src") === sliderImage.getAttribute("src") ) {
-            fig.firstElementChild.classList.add("js-slider__thumbs-image--current");
+        if(clonedFigure.firstElementChild.getAttribute("src") === sliderImage.getAttribute("src") ) {
+            clonedFigure.firstElementChild.classList.add("js-slider__thumbs-image--current");
         }
         // remove caption
-        fig.removeChild(fig.lastElementChild)
-        sliderThumbs.appendChild(fig)
+        clonedFigure.removeChild(clonedFigure.lastElementChild)
+        sliderThumbs.appendChild(clonedFigure)
     })
-   
-    
-    
 }
 
 const onImageNext = function(event) {
@@ -176,5 +175,10 @@ const onImagePrev = function(event) {
 const onClose = function(event) {
     // todo:
     // 1. należy usunać klasę [js-slider--active] dla [.js-slider]
+    const jsSlider = document.querySelector(".js-slider");
+    jsSlider.classList.remove("js-slider--active");
+
     // 2. należy usunać wszystkie dzieci dla [.js-slider__thumbs] pomijając [.js-slider__thumbs-item--prototype]
+    const jsSliderThumbs = jsSlider.querySelector(".js-slider__thumbs");
+    jsSliderThumbs.innerHTML= jsSliderThumbs.firstElementChild;
 }
