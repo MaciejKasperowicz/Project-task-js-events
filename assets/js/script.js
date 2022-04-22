@@ -135,13 +135,18 @@ const onImageNext = function(event) {
     // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
     // console.log(currentElementParent)
     // console.log(nextElementParent)
+    currentElement.classList.remove("js-slider__thumbs-image--current");
+    const sliderImage = document.querySelector(".js-slider__image");
     if(nextElementParent){
-        currentElement.classList.remove("js-slider__thumbs-image--current");
         nextElementParent.firstElementChild.classList.add("js-slider__thumbs-image--current");
 
         // 5. podmienić atrybut o nazwie [src] dla [.js-slider__image]
-        const sliderImage = document.querySelector(".js-slider__image");
         sliderImage.src = nextElementParent.firstElementChild.getAttribute("src");
+    } else {
+        const sliderThumbs = document.querySelector(".js-slider__thumbs");
+        const firstSliderThumbsElement = sliderThumbs.firstElementChild.nextElementSibling;
+        firstSliderThumbsElement.firstElementChild.classList.add("js-slider__thumbs-image--current");
+        sliderImage.src = firstSliderThumbsElement.firstElementChild.getAttribute("src");
     }
     
 }
@@ -162,13 +167,18 @@ const onImagePrev = function(event) {
     // 3. sprawdzić czy ten element istnieje i czy nie posiada klasy [.js-slider__thumbs-item--prototype]
     // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
     
+    currentElement.classList.remove("js-slider__thumbs-image--current");
+    const sliderImage = document.querySelector(".js-slider__image");
     if(prevElementParent && !prevElementParent.classList.contains("js-slider__thumbs-item--prototype")){
-        currentElement.classList.remove("js-slider__thumbs-image--current");
         prevElementParent.firstElementChild.classList.add("js-slider__thumbs-image--current");
 
         // 5. podmienić atrybut [src] dla [.js-slider__image]
-        const sliderImage = document.querySelector(".js-slider__image");
         sliderImage.src = prevElementParent.firstElementChild.getAttribute("src");
+    } else {
+        const sliderThumbs = document.querySelector(".js-slider__thumbs");
+        const lastSliderThumbsElement = sliderThumbs.lastElementChild;
+        lastSliderThumbsElement.firstElementChild.classList.add("js-slider__thumbs-image--current");
+        sliderImage.src = lastSliderThumbsElement.firstElementChild.getAttribute("src");
     }
 }
 
