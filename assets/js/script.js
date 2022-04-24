@@ -97,7 +97,13 @@ const onAutoSwitch = function(time){
 
 const onImageClick = function(event, sliderRootElement, imagesSelector) {
     // todo:
-    
+    // 1. dodać klasę [.js-slider--active], aby pokazać całą sekcję
+    // 2. wyszukać ściężkę (atrybut [src]) do klikniętego elementu i wstawić do [.js-slider__image]
+    // 3. pobrać nazwę grupy zapisaną w dataset klikniętego elementu
+    // 4. wyszukać wszystkie zdjęcia należące do danej grupy, które wykorzystasz do osadzenia w dolnym pasku
+    // 5. utworzyć na podstawie elementu [.js-slider__thumbs-item--prototype] zawartość dla [.js-slider__thumbs]
+    // 6. zaznaczyć przy pomocy klasy [.js-slider__thumbs-image--current], który element jest aktualnie wyświetlany
+
     sliderRootElement.classList.add("js-slider--active");
     const sliderImage = sliderRootElement.querySelector(".js-slider__image");
     const currentFigure = event.target;
@@ -129,20 +135,12 @@ function getElementsForSwitching(currentThumbsImageSelector, sliderImageSelector
     const sliderImage = document.querySelector(sliderImageSelector);
     const sliderThumbs = document.querySelector(sliderThumbsSelector);
     const firstSliderThumbsElement = sliderThumbs.firstElementChild.nextElementSibling;
-
-    //////////////////////////////////////////////
-    // const firstSliderThumbsElement = sliderThumbs.firstChild.nextElementSibling;
-    /////////////////////////////////////////////
-
-    // console.log("sliderThumbs.firstChildnextSibling: ", sliderThumbs.firstChild.nextElementSibling);
-    // console.log("firstSliderThumbsElement: ", firstSliderThumbsElement)
     const lastSliderThumbsElement = sliderThumbs.lastElementChild;
     return{
         currentElement,
         nextElementParent,
         prevElementParent,
         sliderImage,
-        sliderThumbs,
         firstSliderThumbsElement,
         lastSliderThumbsElement
     }
@@ -159,13 +157,17 @@ function changeSliderImage(element, elementParent){
 const onImageNext = function(event) {
     // console.log(this, 'onImageNext');
     // // [this] wskazuje na element [.js-slider]
+
+    // todo:
+    // 1. wyszukać aktualny wyświetlany element przy pomocy [.js-slider__thumbs-image--current]
+    // 2. znaleźć element następny do wyświetlenie względem drzewa DOM dla [.js-slider__thumbs]
+    // 3. sprawdzić czy ten element istnieje - jeśli nie to [.nextElementSibling] zwróci [null]
+    // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
+    // 5. podmienić atrybut o nazwie [src] dla [.js-slider__image]
     
     const elementsForSwitching = getElementsForSwitching(".js-slider__thumbs-image--current", ".js-slider__image", ".js-slider__thumbs");
-    const {currentElement, nextElementParent, sliderImage, sliderThumbs, firstSliderThumbsElement} = elementsForSwitching;
+    const {currentElement, nextElementParent, sliderImage, firstSliderThumbsElement} = elementsForSwitching;
     currentElement.classList.remove("js-slider__thumbs-image--current");
-
-    // console.log("sliderThumbs", sliderThumbs);
-    // console.log("firstSliderThumbsElement:", firstSliderThumbsElement);
 
     if(nextElementParent){
         changeSelectedThumbsImage(nextElementParent, "js-slider__thumbs-image--current");
@@ -181,6 +183,13 @@ const onImageNext = function(event) {
 const onImagePrev = function(event) {
     // console.log(this, 'onImagePrev');
     // [this] wskazuje na element [.js-slider]
+
+    // todo:
+    // 1. wyszukać aktualny wyświetlany element przy pomocy [.js-slider__thumbs-image--current]
+    // 2. znaleźć element poprzedni do wyświetlenie względem drzewa DOM dla [.js-slider__thumbs]
+    // 3. sprawdzić czy ten element istnieje i czy nie posiada klasy [.js-slider__thumbs-item--prototype]
+    // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
+    // 5. podmienić atrybut [src] dla [.js-slider__image]
 
     const elementsForSwitching = getElementsForSwitching(".js-slider__thumbs-image--current", ".js-slider__image", ".js-slider__thumbs");
     const {currentElement, prevElementParent, sliderImage, lastSliderThumbsElement} = elementsForSwitching;
@@ -202,7 +211,6 @@ const onClose = function(event) {
     // todo:
     // 1. należy usunać klasę [js-slider--active] dla [.js-slider]
     const jsSlider = document.querySelector(".js-slider");
-
     jsSlider.classList.remove("js-slider--active");
     
     // 2. należy usunać wszystkie dzieci dla [.js-slider__thumbs] pomijając [.js-slider__thumbs-item--prototype]
@@ -212,5 +220,4 @@ const onClose = function(event) {
 
     jsSliderThumbs.innerHTML= "";
     jsSliderThumbs.appendChild(prototypeItem);
-
 }
