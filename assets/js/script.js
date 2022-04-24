@@ -20,15 +20,15 @@ const runJSSlider = function() {
     initCustomEvents(imagesList, sliderRootElement, imagesSelector);
     
 }
-
+let autoSwitchingInterval;
 const initEvents = function(imagesList, sliderRootElement) {
     imagesList.forEach( function(item)  {
         item.addEventListener('click', function(e) {
             fireCustomEvent(e.currentTarget, 'js-slider-img-click');
+            fireCustomEvent(sliderRootElement, 'js-slider-auto-switch');
         });
         
     });
-    
     
     // todo: 
     // utwórz nasłuchiwanie eventu o nazwie [click], który ma uruchomić event [js-slider-img-next]
@@ -36,6 +36,8 @@ const initEvents = function(imagesList, sliderRootElement) {
     const navNext = sliderRootElement.querySelector('.js-slider__nav--next');
     navNext.addEventListener("click", function(){
         fireCustomEvent(navNext, "js-slider-img-next");
+        //Additional task 2: disable automatic switching
+        clearInterval(autoSwitchingInterval);
     })
 
     // todo:
@@ -43,7 +45,9 @@ const initEvents = function(imagesList, sliderRootElement) {
     // na elemencie [.js-slider__nav--prev]
     const navPrev = sliderRootElement.querySelector('.js-slider__nav--prev');
     navPrev.addEventListener("click", function(){
-        fireCustomEvent(navPrev, "js-slider-img-prev")
+        fireCustomEvent(navPrev, "js-slider-img-prev");
+        //Additional task 2: disable automatic switching
+        clearInterval(autoSwitchingInterval);
     })
 
     // todo:
@@ -56,12 +60,14 @@ const initEvents = function(imagesList, sliderRootElement) {
         if(e.target === e.currentTarget){
             fireCustomEvent(zoom, "js-slider-close");
         }
+        //Additional task 2: disable automatic switching
+        clearInterval(autoSwitchingInterval);
     })
     
 }
 
 const fireCustomEvent = function(element, name) {
-    console.log(element.className, '=>', name);
+    // console.log(element.className, '=>', name);
     const event = new CustomEvent(name, {
         bubbles: true,
     });
@@ -75,32 +81,31 @@ const initCustomEvents = function(imagesList, sliderRootElement, imagesSelector)
             onImageClick(event, sliderRootElement, imagesSelector);
         });
     });
-
     sliderRootElement.addEventListener('js-slider-img-next', onImageNext);
     sliderRootElement.addEventListener('js-slider-img-prev', onImagePrev);
     sliderRootElement.addEventListener('js-slider-close', onClose);
+    ///////////apply autoswitching event//////////////////////////////////////////
+    sliderRootElement.addEventListener('js-slider-auto-switch', function(){
+        onAutoSwitch(2000);
+    });
+    ////////////////////////////////////////////////////////////////////////
+}
+
+const onAutoSwitch = function(time){
+    autoSwitchingInterval = setInterval(onImageNext, time) 
 }
 
 const onImageClick = function(event, sliderRootElement, imagesSelector) {
-    // todo:  
-    // console.log("Przed: ",document.querySelector(".gallery"));
-    // 1. dodać klasę [.js-slider--active], aby pokazać całą sekcję
-    sliderRootElement.classList.add("js-slider--active");
+    // todo:
     
-    // 2. wyszukać ściężkę (atrybut [src]) do klikniętego elementu i wstawić do [.js-slider__image]
+    sliderRootElement.classList.add("js-slider--active");
     const sliderImage = sliderRootElement.querySelector(".js-slider__image");
     const currentFigure = event.target;
     const imgSrc = currentFigure.firstElementChild.getAttribute("src");
     sliderImage.src = imgSrc;
 
-    // 3. pobrać nazwę grupy zapisaną w dataset klikniętego elementu
     const groupName = event.target.dataset.sliderGroupName;
-
-    // 4. wyszukać wszystkie zdjęcia należące do danej grupy, które wykorzystasz do osadzenia w dolnym pasku
     const figBelongsToGroup = document.querySelectorAll(`${imagesSelector}[data-slider-group-name="${groupName}"]`);
-
-    // 5. utworzyć na podstawie elementu [.js-slider__thumbs-item--prototype] zawartość dla [.js-slider__thumbs]
-    // 6. zaznaczyć przy pomocy klasy [.js-slider__thumbs-image--current], który element jest aktualnie wyświetlany
     const sliderThumbs = document.querySelector(".js-slider__thumbs");
     figBelongsToGroup.forEach(fig =>{
         const clonedFigure = fig.cloneNode(true);
@@ -111,84 +116,101 @@ const onImageClick = function(event, sliderRootElement, imagesSelector) {
             clonedFigure.firstElementChild.classList.add("js-slider__thumbs-image--current");
         }
         // remove caption
-        clonedFigure.removeChild(clonedFigure.lastElementChild)
-        sliderThumbs.appendChild(clonedFigure)
-    })
+        clonedFigure.removeChild(clonedFigure.lastElementChild);
+        sliderThumbs.appendChild(clonedFigure);
+    });
 }
 
-const onImageNext = function(event) {
-    console.log(this, 'onImageNext');
-    // [this] wskazuje na element [.js-slider]
-    
-    // todo:
-
-    // 1. wyszukać aktualny wyświetlany element przy pomocy [.js-slider__thumbs-image--current]
-    const currentElement = document.querySelector(".js-slider__thumbs-image--current")
+function getElementsForSwitching(currentThumbsImageSelector, sliderImageSelector, sliderThumbsSelector){
+    const currentElement = document.querySelector(currentThumbsImageSelector);
     const currentElementParent = currentElement.parentElement;
-    // console.log(currentElementParent)
-
-    // 2. znaleźć element następny do wyświetlenie względem drzewa DOM dla [.js-slider__thumbs]
     const nextElementParent = currentElementParent.nextElementSibling;
+    const prevElementParent = currentElementParent.previousElementSibling;
+    const sliderImage = document.querySelector(sliderImageSelector);
+    const sliderThumbs = document.querySelector(sliderThumbsSelector);
+    const firstSliderThumbsElement = sliderThumbs.firstElementChild.nextElementSibling;
+
+    //////////////////////////////////////////////
+    // const firstSliderThumbsElement = sliderThumbs.firstChild.nextElementSibling;
+    /////////////////////////////////////////////
+
+    // console.log("sliderThumbs.firstChildnextSibling: ", sliderThumbs.firstChild.nextElementSibling);
+    // console.log("firstSliderThumbsElement: ", firstSliderThumbsElement)
+    const lastSliderThumbsElement = sliderThumbs.lastElementChild;
+    return{
+        currentElement,
+        nextElementParent,
+        prevElementParent,
+        sliderImage,
+        sliderThumbs,
+        firstSliderThumbsElement,
+        lastSliderThumbsElement
+    }
+}
+function changeSelectedThumbsImage(element, className ){
+    element.firstElementChild.classList.add(className);
+}
+
+function changeSliderImage(element, elementParent){
+    element.src = elementParent.firstElementChild.getAttribute("src");
+}
+
+
+const onImageNext = function(event) {
+    // console.log(this, 'onImageNext');
+    // // [this] wskazuje na element [.js-slider]
     
-
-    // 3. sprawdzić czy ten element istnieje - jeśli nie to [.nextElementSibling] zwróci [null]
-    // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
-    // console.log(currentElementParent)
-    // console.log(nextElementParent)
+    const elementsForSwitching = getElementsForSwitching(".js-slider__thumbs-image--current", ".js-slider__image", ".js-slider__thumbs");
+    const {currentElement, nextElementParent, sliderImage, sliderThumbs, firstSliderThumbsElement} = elementsForSwitching;
     currentElement.classList.remove("js-slider__thumbs-image--current");
-    const sliderImage = document.querySelector(".js-slider__image");
-    if(nextElementParent){
-        nextElementParent.firstElementChild.classList.add("js-slider__thumbs-image--current");
 
-        // 5. podmienić atrybut o nazwie [src] dla [.js-slider__image]
-        sliderImage.src = nextElementParent.firstElementChild.getAttribute("src");
+    // console.log("sliderThumbs", sliderThumbs);
+    // console.log("firstSliderThumbsElement:", firstSliderThumbsElement);
+
+    if(nextElementParent){
+        changeSelectedThumbsImage(nextElementParent, "js-slider__thumbs-image--current");
+        changeSliderImage(sliderImage, nextElementParent);
     } else {
-        const sliderThumbs = document.querySelector(".js-slider__thumbs");
-        const firstSliderThumbsElement = sliderThumbs.firstElementChild.nextElementSibling;
-        firstSliderThumbsElement.firstElementChild.classList.add("js-slider__thumbs-image--current");
-        sliderImage.src = firstSliderThumbsElement.firstElementChild.getAttribute("src");
+        //Additional task 1: endless switching
+        changeSelectedThumbsImage(firstSliderThumbsElement, "js-slider__thumbs-image--current")
+        changeSliderImage(sliderImage, firstSliderThumbsElement);
     }
     
 }
 
 const onImagePrev = function(event) {
-    console.log(this, 'onImagePrev');
+    // console.log(this, 'onImagePrev');
     // [this] wskazuje na element [.js-slider]
-    
-    // todo:
 
-    // 1. wyszukać aktualny wyświetlany element przy pomocy [.js-slider__thumbs-image--current]
-    const currentElement = document.querySelector(".js-slider__thumbs-image--current")
-    const currentElementParent = currentElement.parentElement;
-
-    // 2. znaleźć element poprzedni do wyświetlenie względem drzewa DOM dla [.js-slider__thumbs]
-    const prevElementParent = currentElementParent.previousElementSibling;
-
-    // 3. sprawdzić czy ten element istnieje i czy nie posiada klasy [.js-slider__thumbs-item--prototype]
-    // 4. przełączyć klasę [.js-slider__thumbs-image--current] do odpowiedniego elementu
-    
+    const elementsForSwitching = getElementsForSwitching(".js-slider__thumbs-image--current", ".js-slider__image", ".js-slider__thumbs");
+    const {currentElement, prevElementParent, sliderImage, lastSliderThumbsElement} = elementsForSwitching;
     currentElement.classList.remove("js-slider__thumbs-image--current");
-    const sliderImage = document.querySelector(".js-slider__image");
-    if(prevElementParent && !prevElementParent.classList.contains("js-slider__thumbs-item--prototype")){
-        prevElementParent.firstElementChild.classList.add("js-slider__thumbs-image--current");
 
-        // 5. podmienić atrybut [src] dla [.js-slider__image]
-        sliderImage.src = prevElementParent.firstElementChild.getAttribute("src");
+    if(prevElementParent && !prevElementParent.classList.contains("js-slider__thumbs-item--prototype")){
+        changeSelectedThumbsImage(prevElementParent, "js-slider__thumbs-image--current");
+        changeSliderImage(sliderImage, prevElementParent)
+
     } else {
-        const sliderThumbs = document.querySelector(".js-slider__thumbs");
-        const lastSliderThumbsElement = sliderThumbs.lastElementChild;
-        lastSliderThumbsElement.firstElementChild.classList.add("js-slider__thumbs-image--current");
-        sliderImage.src = lastSliderThumbsElement.firstElementChild.getAttribute("src");
+        //Additional task 1: endless switching
+        changeSelectedThumbsImage(lastSliderThumbsElement, "js-slider__thumbs-image--current")
+        changeSliderImage(sliderImage, lastSliderThumbsElement);
     }
 }
 
 const onClose = function(event) {
+    console.log("zamknięcie")
     // todo:
     // 1. należy usunać klasę [js-slider--active] dla [.js-slider]
     const jsSlider = document.querySelector(".js-slider");
-    jsSlider.classList.remove("js-slider--active");
 
+    jsSlider.classList.remove("js-slider--active");
+    
     // 2. należy usunać wszystkie dzieci dla [.js-slider__thumbs] pomijając [.js-slider__thumbs-item--prototype]
-    const jsSliderThumbs = jsSlider.querySelector(".js-slider__thumbs");
-    jsSliderThumbs.innerHTML= jsSliderThumbs.firstElementChild;
+    const jsSliderThumbs = document.querySelector(".js-slider__thumbs");
+    const prototypeItem = jsSliderThumbs.firstElementChild;
+    
+
+    jsSliderThumbs.innerHTML= "";
+    jsSliderThumbs.appendChild(prototypeItem);
+
 }
